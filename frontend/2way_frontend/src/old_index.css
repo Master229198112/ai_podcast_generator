@@ -1,0 +1,134 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: black;
+  background-color: white;
+}
+
+/* Centering Everything */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+/* Tile Container (Beautiful Card) */
+.tile {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 500px;
+  max-width: 90%;
+}
+
+/* Header containing both logos */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 93%;
+  padding: 1rem 3rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Logo styles */
+.logo-left {
+  height: 100px;
+}
+
+.logo-right {
+  height: 80px;
+}
+
+/* Title */
+.title {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* Radio Buttons */
+.radio-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* Input Field */
+.input-field {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+/* Button */
+.btn {
+  background-color: #1a73e8;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background-color: #1558b3;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  background: #ddd;
+  height: 5px;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: #4caf50;
+}
+
+/* Error Message */
+.error-message {
+  background: #ffcccc;
+  color: red;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.music-selection{
+  width: 100%;
+  padding: 10px;
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+
+/* Audio Player */
+.audio-container {
+  margin-top: 15px;
+}
+
+.audio-title {
+  font-size: 18px;
+}
+
+.audio-player {
+  width: 100%;
+  margin-top: 10px;
+}
