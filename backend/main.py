@@ -3,9 +3,9 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from extract_text import extract_text
-from summarize import summarize_text
-from discussion import generate_discussion
-from tts import generate_combined_audio, clone_voice
+from summarize import summarize_text  # Now uses LLaMA 3.1
+from discussion import generate_discussion  # Also uses LLaMA 3.1
+from tts import generate_combined_audio
 from db import save_podcast
 import os
 
@@ -22,15 +22,13 @@ app.add_middleware(
 
 # ✅ Ensure the 'audio' directory exists to store generated audio files
 STATIC_DIR = "audio"
-VOICE_CLONES_DIR = "voice_clones"
 os.makedirs(STATIC_DIR, exist_ok=True)
-os.makedirs(VOICE_CLONES_DIR, exist_ok=True)
 app.mount("/audio", StaticFiles(directory=STATIC_DIR), name="audio")
 
 
 # ✅ Upload & Process PDF File
 @app.post("/upload")
-async def upload_document(file: UploadFile = File(...), background_music: str = Form("none"), voice_sample: UploadFile = File(None)):
+async def upload_document(file: UploadFile = File(...), background_music: str = Form("none")):
     try:
         # Read file content
         content = await file.read()
@@ -41,33 +39,23 @@ async def upload_document(file: UploadFile = File(...), background_music: str = 
         if not text.strip():
             raise HTTPException(status_code=400, detail="No text extracted from the file.")
 
+        # Summarization and discussion using LLaMA 3.1
         summary = summarize_text(text)
         print(f"\n✅ Generated Summary: {summary}")  # Debug print
 
         discussion = generate_discussion(summary)
         print(f"\n✅ Generated Discussion: {discussion}")  # Debug print
 
-        # Handle voice cloning if a sample is provided
-        cloned_voice_path = None
-        if voice_sample:
-            voice_sample_path = os.path.join(VOICE_CLONES_DIR, voice_sample.filename)
-            with open(voice_sample_path, "wb") as f:
-                f.write(await voice_sample.read())
-            cloned_voice_path = clone_voice(voice_sample_path, voice_sample_path + ".pth")
+        # Generate audio with selected background music
+        audio_file = generate_combined_audio(discussion, file.filename, background_music)
 
-        # Generate audio in alternating host voices with selected background music and optional voice cloning
-        audio_file = generate_combined_audio(discussion, file.filename, background_music, cloned_voice=cloned_voice_path)
-
-        # Ensure audio file is created
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
 
         print(f"\n✅ Generated Audio File: {audio_file}")  # Debug print
 
-        # Save to database (optional)
         podcast_id = save_podcast(file.filename, summary, audio_file)
 
-        # Response JSON
         response_data = {
             "message": "Podcast Created from PDF!",
             "podcast_id": podcast_id,
@@ -88,38 +76,28 @@ async def upload_document(file: UploadFile = File(...), background_music: str = 
 
 # ✅ Generate Podcast from Topic Input
 @app.post("/generate")
-async def generate_podcast(topic: str = Form(...), background_music: str = Form("none"), voice_sample: UploadFile = File(None)):
+async def generate_podcast(topic: str = Form(...), background_music: str = Form("none")):
     try:
         print(f"\n✅ Received Topic: {topic}")  # Debug print
 
+        # Summarization and discussion using LLaMA 3.1
         summary = summarize_text(topic)
         print(f"\n✅ Generated Summary: {summary}")  # Debug print
 
         discussion = generate_discussion(summary)
         print(f"\n✅ Generated Discussion: {discussion}")  # Debug print
 
-        # Handle voice cloning if a sample is provided
-        cloned_voice_path = None
-        if voice_sample:
-            voice_sample_path = os.path.join(VOICE_CLONES_DIR, voice_sample.filename)
-            with open(voice_sample_path, "wb") as f:
-                f.write(await voice_sample.read())
-            cloned_voice_path = clone_voice(voice_sample_path, voice_sample_path + ".pth")
-
-        # Generate an audio file based on topic with selected background music and optional voice cloning
+        # Generate audio with selected background music
         filename = f"podcast_{topic.replace(' ', '_')}.mp3"
-        audio_file = generate_combined_audio(discussion, filename, background_music, cloned_voice=cloned_voice_path)
+        audio_file = generate_combined_audio(discussion, filename, background_music)
 
-        # Ensure audio file is created
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
 
         print(f"\n✅ Generated Audio File: {audio_file}")  # Debug print
 
-        # Save to database (optional)
         podcast_id = save_podcast(topic, summary, audio_file)
 
-        # Response JSON
         response_data = {
             "message": "Podcast Created from Topic!",
             "podcast_id": podcast_id,

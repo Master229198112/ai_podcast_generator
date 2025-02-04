@@ -34,30 +34,32 @@ The **AI Podcast Generator** is a web application that allows users to generate 
 ## Installation & Setup
 
 ### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/ai-podcast-generator.git
-cd ai-podcast-generator
+```
+git clone https://github.com/Master229198112/ai_podcast_generator.git
+cd ai_podcast_generator
 ```
 
 ### 2. Backend Setup
 1. **Navigate to the backend folder**:
-   ```bash
+   ```
    cd backend
    ```
 
 2. **Create a virtual environment**:
-   ```bash
+   ```
    python -m venv venv
    source venv/bin/activate  # For Windows: venv\Scripts\activate
+   
+   I have used conda to create env
    ```
 
 3. **Install dependencies**:
-   ```bash
+   ```
    pip install -r requirements.txt
    ```
 
 4. **Start the FastAPI server**:
-   ```bash
+   ```
    uvicorn main:app --reload
    ```
 
@@ -65,18 +67,18 @@ cd ai-podcast-generator
 
 ### 3. Frontend Setup
 1. **Navigate to the frontend folder**:
-   ```bash
+   ```
    cd frontend
    ```
 
 2. **Install frontend dependencies**:
-   ```bash
+   ```
    npm install
    ```
 
 3. **Start the React app**:
-   ```bash
-   npm start
+   ```
+   npm run dev
    ```
 
 ---
@@ -157,14 +159,14 @@ ai-podcast-generator/
 ---
 
 ## License
-This project is licensed under the **MIT License**.
+This project is licensed under the **AIRC**.
 
 ---
 
 ## Contact
 For any questions or contributions, feel free to reach out:
-- **Email**: your.email@example.com
-- **GitHub**: [yourusername](https://github.com/yourusername)
+- **Email**: vishalkumar.sharma37@gmail.com
+- **GitHub**: [Master229198112](https://github.com/Master229198112)
 
 Happy Podcasting! 🎤🌟
 
