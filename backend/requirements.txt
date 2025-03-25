@@ -32,3 +32,4 @@ nltk
 beautifulsoup4
 regex
 typing_extensions
+python-docx
