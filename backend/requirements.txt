@@ -34,3 +34,4 @@ regex
 typing_extensions
 python-docx
 gTTS
+pyttsx3
