@@ -104,6 +104,7 @@ ai-podcast-generator/
 │   │   └── index.css             # Styling for frontend UI
 │   ├── public/
 │   ├── package.json
+│   ├── .env
 │   └── vite.config.js
 │
 ├── README.md                     # Project documentation
