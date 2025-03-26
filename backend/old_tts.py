@@ -1,15 +1,21 @@
+from gtts import gTTS
 import os
 import re
+import pyttsx3
 import time
 from pydub import AudioSegment
 from TTS.api import TTS
+import torch
 
-# ✅ Ensure 'audio/' directory exists for storing generated audio
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Ensure 'audio/' directory exists for storing generated audio
 AUDIO_DIR = "audio"
 BACKGROUND_MUSIC_DIR = "background_music"  # Directory for background music tracks
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
+tts.to(device)
 
 def clean_text(text):
     """
@@ -18,7 +24,19 @@ def clean_text(text):
     text = re.sub(r"Rahul:|Kusum:", "", text, flags=re.IGNORECASE)
     return text.strip()
 
-def text_to_speech(text, filename, voice_index):
+def create_attention_mask(text):
+    """
+    Use the model's tokenizer to create an attention mask that aligns with tokenized input.
+    """
+    # Use the TTS model's internal tokenizer
+    tokenized = tts.tokenizer(text)
+    
+    # Create attention mask based on the number of tokens
+    attention_mask = [1] * len(tokenized["input_ids"])
+    
+    return torch.tensor(attention_mask).unsqueeze(0), tokenized["input_ids"]
+
+def text_to_speech(text, filename, voice_index, cloned_voice_path=None):
     """
     Convert text to speech using TTS and save as an audio file.
     """
@@ -32,8 +50,22 @@ def text_to_speech(text, filename, voice_index):
     print(f"🔄 Generating speech for: {filename}")
 
     try:
-        tts.tts_to_file(text=text, speaker=voice_index, language="en", file_path=audio_path)
-        
+        if cloned_voice_path:
+            print(f"🎙️ Using cloned voice from: {cloned_voice_path}")
+            tts.tts_to_file(
+                text=text,
+                speaker_wav=cloned_voice_path,
+                language="en",
+                file_path=audio_path
+            )
+        else:
+            tts.tts_to_file(
+                text=text,
+                speaker=voice_index,
+                language="en",
+                file_path=audio_path
+            )
+
         wait_time = 0
         while not os.path.exists(audio_path):
             if wait_time > 10:
@@ -47,6 +79,7 @@ def text_to_speech(text, filename, voice_index):
     except Exception as e:
         print(f"⚠️ Error during TTS processing: {e}")
         return None
+
 
 def add_background_music(speech_audio, background_music_genre, output_filename):
     """
@@ -80,7 +113,7 @@ def add_background_music(speech_audio, background_music_genre, output_filename):
         print(f"❌ Error adding background music: {e}")
         return speech_audio
 
-def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.mp3", background_music_genre="none"):
+def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.mp3", background_music_genre="none"): 
     """
     Combine multiple audio files into one final audio file with optional background music.
     """
@@ -88,13 +121,14 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         print("❌ No audio files to combine.")
         return None
 
+    temp_audio_files = [os.path.normpath(file) for file in temp_audio_files]
+
     try:
         combined = AudioSegment.from_file(temp_audio_files[0])
         for audio_file in temp_audio_files[1:]:
             sound = AudioSegment.from_file(audio_file)
             combined += sound
 
-        # Fix the path to avoid double 'audio/audio/' in the final output
         combined_audio_path = os.path.join(AUDIO_DIR, os.path.basename(output_filename))  
 
         combined.export(combined_audio_path, format="mp3")
@@ -108,15 +142,17 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         print(f"❌ Error during audio combination: {e}")
         return None
 
-def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none"):
+def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None):
     """
     Generate individual speech files for each dialogue turn and combine them into one file.
+    If cloned_voice_path is provided, use it for voice cloning.
     """
     final_audio_path = os.path.join(AUDIO_DIR, f"{filename_prefix}_final.mp3")
     temp_audio_files = []
 
-    dialogue_lines = re.findall(r'(Rahul|Kusum):\s*(.*?)(?=\n(Rahul|Kusum):|\Z)', conversation_text, re.DOTALL)
-
+    # dialogue_lines = re.findall(r'(Rahul|Kusum):\\s*(.*?)(?=\\n(Rahul|Kusum):|\\Z)', conversation_text, re.DOTALL)
+    dialogue_lines = re.findall(r'\*\*(Rahul|Kusum):\*\*(.*?)(?=\n\*\*(Rahul|Kusum):|\Z)', conversation_text, re.DOTALL)
+    
     if not dialogue_lines:
         print("❌ Error: No dialogues detected in the conversation.")
         return None
@@ -127,7 +163,9 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
 
         voice_index = "Damien Black" if speaker == "Rahul" else "Claribel Dervla"
         audio_filename = f"{filename_prefix}_part_{i}.mp3"
-        speech_file = text_to_speech(line, audio_filename, voice_index)
+
+        # Use cloned voice if provided, otherwise use default voice
+        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path=cloned_voice_path)
 
         if speech_file:
             temp_audio_files.append(speech_file)

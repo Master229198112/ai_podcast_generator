@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL;
 import React, { useState } from "react";
 import aircLogo from "./AIRC.jpg";
 import woxsenLogo from "./woxsen.png";
@@ -6,7 +7,10 @@ const App = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [topic, setTopic] = useState("");
     const [inputType, setInputType] = useState("pdf");
-    const [backgroundMusic, setBackgroundMusic] = useState("none");  // New state for background music
+    const [backgroundMusic, setBackgroundMusic] = useState("none");
+    const [voiceSample, setVoiceSample] = useState(null);
+    const [useClonedVoice, setUseClonedVoice] = useState(false);
+    const [hostName, setHostName] = useState("");  // New state for host name input
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState(null);
@@ -30,6 +34,18 @@ const App = () => {
         setBackgroundMusic(event.target.value);
     };
 
+    const handleVoiceSampleChange = (event) => {
+        setVoiceSample(event.target.files[0]);
+    };
+
+    const handleHostNameChange = (event) => {
+        setHostName(event.target.value);
+    };
+
+    const toggleVoiceCloning = () => {
+        setUseClonedVoice(!useClonedVoice);
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         setErrorMessage(null);
@@ -47,10 +63,19 @@ const App = () => {
             return;
         }
 
-        formData.append("background_music", backgroundMusic);  // Append background music selection
+        formData.append("background_music", backgroundMusic);
+
+        if (useClonedVoice && voiceSample && hostName.trim()) {
+            formData.append("voice_sample", voiceSample);
+            formData.append("host_name", hostName);
+        } else if (useClonedVoice && (!voiceSample || !hostName.trim())) {
+            setErrorMessage("Please provide both a voice sample and host name.");
+            setLoading(false);
+            return;
+        }
 
         try {
-            const endpoint = inputType === "pdf" ? "http://localhost:8000/upload" : "http://localhost:8000/generate";
+            const endpoint = inputType === "pdf" ? `${API_BASE}/upload` : `${API_BASE}/generate`;
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData,
@@ -59,7 +84,7 @@ const App = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setAudioUrl(`http://localhost:8000${data.audio}`);
+                setAudioUrl(`${API_BASE}${data.audio}`);
                 setProgress(100);
             } else {
                 throw new Error(data.error || "Failed to process request.");
@@ -106,6 +131,19 @@ const App = () => {
                         <option value="ambient">Ambient</option>
                         <option value="lofi">Lo-Fi</option>
                     </select>
+                </div>
+
+                {/* Voice Cloning Option */}
+                <div className="music-selection">
+                    <label>
+                        <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning for Host 1
+                    </label>
+                    {useClonedVoice && (
+                        <>
+                            <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
+                            <input type="text" placeholder="Enter Host 1's Name..." value={hostName} onChange={handleHostNameChange} className="input-field" />
+                        </>
+                    )}
                 </div>
 
                 <button onClick={handleSubmit} className="btn" disabled={loading}>

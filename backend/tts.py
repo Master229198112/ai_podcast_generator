@@ -1,7 +1,6 @@
 from gtts import gTTS
 import os
 import re
-import pyttsx3
 import time
 from pydub import AudioSegment
 from TTS.api import TTS
@@ -17,19 +16,19 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
 tts.to(device)
 
-def clean_text(text):
+def clean_text(text, host_name="Rahul"):
     """
-    Remove * symbols and host names (Rahul: and Kusum:)
+    Remove * symbols and host names (Rahul or provided host name).
     """
-    text = re.sub(r"Rahul:|Kusum:", "", text, flags=re.IGNORECASE)
+    text = re.sub(rf"{host_name}:|Kusum:", "", text, flags=re.IGNORECASE)
     return text.strip()
 
-def text_to_speech(text, filename, voice_index, cloned_voice_path=None):
+def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_name="Rahul"):
     """
     Convert text to speech using TTS and save as an audio file.
-    If cloned_voice_path is provided, use it for voice cloning.
+    Use cloned voice if provided for Host 1, default voice for Host 2.
     """
-    text = clean_text(text)
+    text = clean_text(text, host_name)
 
     if not text.strip():
         print(f"⚠️ Skipping empty text for {filename}")
@@ -39,7 +38,7 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None):
     print(f"🔄 Generating speech for: {filename}")
 
     try:
-        if cloned_voice_path:
+        if voice_index == "Host1" and cloned_voice_path:
             print(f"🎙️ Using cloned voice from: {cloned_voice_path}")
             tts.tts_to_file(
                 text=text,
@@ -130,15 +129,23 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         print(f"❌ Error during audio combination: {e}")
         return None
 
-def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None):
+def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
     """
     Generate individual speech files for each dialogue turn and combine them into one file.
-    If cloned_voice_path is provided, use it for voice cloning.
+    Apply cloned voice only to Host 1 (custom host name).
     """
     final_audio_path = os.path.join(AUDIO_DIR, f"{filename_prefix}_final.mp3")
     temp_audio_files = []
 
-    dialogue_lines = re.findall(r'(Rahul|Kusum):\s*(.*?)(?=\n(Rahul|Kusum):|\Z)', conversation_text, re.DOTALL)
+    # Ensure default fallback to "Rahul" if no custom host name provided
+    if not host_name.strip():
+        host_name = "Rahul"
+
+    # Globally replace "Rahul" with the custom host name in the dialogue
+    conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)
+
+    # Adjust the regex to detect dialogues correctly
+    dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n({host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
 
     if not dialogue_lines:
         print("❌ Error: No dialogues detected in the conversation.")
@@ -148,11 +155,11 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         if not line.strip():
             continue
 
-        voice_index = "Damien Black" if speaker == "Rahul" else "Claribel Dervla"
+        voice_index = "Host1" if speaker == host_name else "Claribel Dervla"
         audio_filename = f"{filename_prefix}_part_{i}.mp3"
 
-        # Use cloned voice if provided, otherwise use default voice
-        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path=cloned_voice_path)
+        # Use cloned voice only for Host 1
+        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path=cloned_voice_path, host_name=host_name)
 
         if speech_file:
             temp_audio_files.append(speech_file)

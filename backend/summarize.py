@@ -18,10 +18,14 @@ def summarize_text(text):
         # Load LLaMA 3.1 model
         llm = ChatOllama(model="llama3.1:8b", temperature=0)
 
-        # Summarization prompt
-        prompt = f"Summarize the following text concisely:\n\n{text}\n\nSummary:"
+        if len(text.split()) < 20:
+            # If input is a short topic, generate an introduction instead of summarization
+            prompt = f"Provide a brief introduction and overview on the topic: '{text}'."
+        else:
+            # For long text (like PDFs), proceed with normal summarization
+            prompt = f"Summarize the following text concisely:\n\n{text}\n\nSummary:"
 
-        # Generate the summary using LLaMA 3.1
+        # Generate the summary/introduction using LLaMA 3.1
         response = llm.invoke(prompt)
 
         # Ensure the response is properly converted to text
