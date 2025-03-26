@@ -114,3 +114,7 @@ async def generate_podcast(topic: str = Form(...), background_music: str = Form(
     except Exception as e:
         print(f"\n❌ Unexpected Error: {str(e)}")  # Debug print
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)
+
+@app.get("/")
+def health():
+    return {"status": "running"}
