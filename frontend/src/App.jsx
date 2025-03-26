@@ -11,8 +11,6 @@ const App = () => {
     const [voiceSample, setVoiceSample] = useState(null);
     const [useClonedVoice, setUseClonedVoice] = useState(false);
     const [customHostName, setCustomHostName] = useState("Rahul");
-    const [host1Voice, setHost1Voice] = useState("en_us_001");
-    const [host2Voice, setHost2Voice] = useState("Claribel Dervla");
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState(null);
@@ -30,6 +28,18 @@ const App = () => {
         setSelectedFile(null);
         setAudioUrl(null);
         setErrorMessage(null);
+    };
+
+    const handleMusicChange = (event) => {
+        setBackgroundMusic(event.target.value);
+    };
+
+    const handleVoiceSampleChange = (event) => {
+        setVoiceSample(event.target.files[0]);
+    };
+
+    const toggleVoiceCloning = () => {
+        setUseClonedVoice(!useClonedVoice);
     };
 
     const handleSubmit = async () => {
@@ -50,8 +60,6 @@ const App = () => {
         }
 
         formData.append("background_music", backgroundMusic);
-        formData.append("host1_voice", host1Voice);
-        formData.append("host2_voice", host2Voice);
         formData.append("host_name", useClonedVoice ? customHostName : "Rahul");
 
         if (useClonedVoice && voiceSample) {
@@ -108,7 +116,7 @@ const App = () => {
 
                 <div className="music-selection">
                     <label>Select Background Music:</label>
-                    <select onChange={(e) => setBackgroundMusic(e.target.value)} className="input-field">
+                    <select onChange={handleMusicChange} className="input-field">
                         <option value="none">None</option>
                         <option value="jazz">Jazz</option>
                         <option value="ambient">Ambient</option>
@@ -117,32 +125,13 @@ const App = () => {
                 </div>
 
                 <div className="music-selection">
-                    <label>Select Host 1 Voice:</label>
-                    <select onChange={(e) => setHost1Voice(e.target.value)} className="input-field">
-                        <option value="en_us_001">en_us_001</option>
-                        <option value="en_us_002">en_us_002</option>
-                        <option value="en_uk_001">en_uk_001</option>
-                    </select>
-                </div>
-
-                <div className="music-selection">
-                    <label>Select Host 2 Voice:</label>
-                    <select onChange={(e) => setHost2Voice(e.target.value)} className="input-field">
-                        <option value="Claribel Dervla">Claribel Dervla</option>
-                        <option value="en_us_001">en_us_001</option>
-                        <option value="en_uk_001">en_uk_001</option>
-                    </select>
-                </div>
-
-                <div className="music-selection">
                     <label>
-                        <input type="checkbox" checked={useClonedVoice} onChange={() => setUseClonedVoice(!useClonedVoice)} /> Enable Voice Cloning
+                        <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning
                     </label>
-
                     {useClonedVoice && (
                         <>
-                            <input type="text" placeholder="Enter Custom Host Name (e.g. John)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
-                            <input type="file" accept="audio/*" onChange={(e) => setVoiceSample(e.target.files[0])} className="input-field" />
+                            <input type="text" placeholder="Enter Host Name (e.g. John)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
+                            <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
                         </>
                     )}
                 </div>

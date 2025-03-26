@@ -11,7 +11,7 @@ import os
 
 app = FastAPI()
 
-# ✅ Add CORS support
+# Allow CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,19 +20,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Ensure the 'audio' directory exists to store generated audio files
+# Serve audio files
 STATIC_DIR = "audio"
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/audio", StaticFiles(directory=STATIC_DIR), name="audio")
 
-# ✅ Upload & Process PDF File
+
 @app.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
     background_music: str = Form("none"),
     voice_sample: UploadFile = File(None),
-    host1_voice: str = Form("en_us_001"),
-    host2_voice: str = Form("Claribel Dervla"),
     host_name: str = Form("Rahul")
 ):
     try:
@@ -41,29 +39,22 @@ async def upload_document(
             cloned_voice_path = os.path.join(STATIC_DIR, voice_sample.filename)
             with open(cloned_voice_path, "wb") as f:
                 f.write(await voice_sample.read())
-            print(f"\n✅ Voice sample saved at: {cloned_voice_path}")
+            print(f"✅ Voice sample saved at: {cloned_voice_path}")
 
         content = await file.read()
         text = extract_text(content, file.filename)
-        print(f"\n✅ Extracted Text: {text[:500]}...")
-
         if not text.strip():
             raise HTTPException(status_code=400, detail="No text extracted from the file.")
 
         summary = summarize_text(text)
-        print(f"\n✅ Generated Summary: {summary}")
-
         discussion = generate_discussion(summary)
-        print(f"\n✅ Generated Discussion: {discussion}")
 
         audio_file = generate_combined_audio(
             discussion,
             file.filename,
-            background_music,
-            cloned_voice_path,
-            host1_voice,
-            host2_voice,
-            host_name
+            background_music_genre=background_music,
+            cloned_voice_path=cloned_voice_path,
+            host_name=host_name
         )
 
         if not os.path.exists(audio_file):
@@ -71,56 +62,49 @@ async def upload_document(
 
         podcast_id = save_podcast(file.filename, summary, audio_file)
 
-        response_data = {
-            "message": "Podcast Created from PDF!",
-            "podcast_id": podcast_id,
-            "audio": f"/audio/{os.path.basename(audio_file)}"
-        }
-
-        return JSONResponse(content=response_data, status_code=200)
+        return JSONResponse(
+            content={
+                "message": "Podcast Created from PDF!",
+                "podcast_id": podcast_id,
+                "audio": f"/audio/{os.path.basename(audio_file)}"
+            },
+            status_code=200
+        )
 
     except HTTPException as e:
         return JSONResponse(content={"error": str(e.detail)}, status_code=e.status_code)
-
     except Exception as e:
-        print(f"\n❌ Unexpected Error: {str(e)}")
+        print(f"❌ Unexpected Error: {str(e)}")
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)
 
-# ✅ Generate Podcast from Topic Input
+
 @app.post("/generate")
 async def generate_podcast(
     topic: str = Form(...),
     background_music: str = Form("none"),
     voice_sample: UploadFile = File(None),
-    host1_voice: str = Form("en_us_001"),
-    host2_voice: str = Form("Claribel Dervla"),
     host_name: str = Form("Rahul")
 ):
     try:
-        print(f"\n✅ Received Topic: {topic}")
+        print(f"✅ Received Topic: {topic}")
 
         cloned_voice_path = None
         if voice_sample:
             cloned_voice_path = os.path.join(STATIC_DIR, voice_sample.filename)
             with open(cloned_voice_path, "wb") as f:
                 f.write(await voice_sample.read())
-            print(f"\n✅ Voice sample saved at: {cloned_voice_path}")
+            print(f"✅ Voice sample saved at: {cloned_voice_path}")
 
         summary = summarize_text(topic)
-        print(f"\n✅ Generated Summary: {summary}")
-
         discussion = generate_discussion(summary)
-        print(f"\n✅ Generated Discussion: {discussion}")
 
         filename = f"podcast_{topic.replace(' ', '_')}.mp3"
         audio_file = generate_combined_audio(
             discussion,
             filename,
-            background_music,
-            cloned_voice_path,
-            host1_voice,
-            host2_voice,
-            host_name
+            background_music_genre=background_music,
+            cloned_voice_path=cloned_voice_path,
+            host_name=host_name
         )
 
         if not os.path.exists(audio_file):
@@ -128,17 +112,17 @@ async def generate_podcast(
 
         podcast_id = save_podcast(topic, summary, audio_file)
 
-        response_data = {
-            "message": "Podcast Created from Topic!",
-            "podcast_id": podcast_id,
-            "audio": f"/audio/{os.path.basename(audio_file)}"
-        }
-
-        return JSONResponse(content=response_data, status_code=200)
+        return JSONResponse(
+            content={
+                "message": "Podcast Created from Topic!",
+                "podcast_id": podcast_id,
+                "audio": f"/audio/{os.path.basename(audio_file)}"
+            },
+            status_code=200
+        )
 
     except HTTPException as e:
         return JSONResponse(content={"error": str(e.detail)}, status_code=e.status_code)
-
     except Exception as e:
-        print(f"\n❌ Unexpected Error: {str(e)}")
+        print(f"❌ Unexpected Error: {str(e)}")
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)

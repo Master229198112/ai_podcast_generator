@@ -1,4 +1,3 @@
-from gtts import gTTS
 import os
 import re
 import time
@@ -16,12 +15,10 @@ tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
 tts.to(device)
 
 def clean_text(text, host_name="Rahul"):
-    text = re.sub(rf"{host_name}:|Kusum:", "", text, flags=re.IGNORECASE)
-    return text.strip()
+    return re.sub(rf"{host_name}:|Kusum:", "", text, flags=re.IGNORECASE).strip()
 
 def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_name="Rahul"):
     text = clean_text(text, host_name)
-
     if not text.strip():
         print(f"⚠️ Skipping empty text for {filename}")
         return None
@@ -68,12 +65,10 @@ def add_background_music(speech_audio, background_music_genre, output_filename):
         if background_music_genre != "none":
             bg_music_path = os.path.join(BACKGROUND_MUSIC_DIR, f"{background_music_genre}.mp3")
             if os.path.exists(bg_music_path):
-                background = AudioSegment.from_file(bg_music_path)
-                background = background - 20
+                background = AudioSegment.from_file(bg_music_path) - 20
 
                 if len(background) < len(speech):
-                    repeat_count = (len(speech) // len(background)) + 1
-                    background = background * repeat_count
+                    background *= (len(speech) // len(background)) + 1
 
                 combined = speech.overlay(background[:len(speech)])
             else:
@@ -84,7 +79,6 @@ def add_background_music(speech_audio, background_music_genre, output_filename):
 
         combined.export(output_filename, format="mp3")
         print(f"✅ Final audio with background music saved: {output_filename}")
-
         return output_filename
     except Exception as e:
         print(f"❌ Error adding background music: {e}")
@@ -95,25 +89,20 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         print("❌ No audio files to combine.")
         return None
 
-    temp_audio_files = [os.path.normpath(file) for file in temp_audio_files]
-
     try:
         combined = AudioSegment.from_file(temp_audio_files[0])
         for audio_file in temp_audio_files[1:]:
-            sound = AudioSegment.from_file(audio_file)
-            combined += sound
+            combined += AudioSegment.from_file(audio_file)
 
-        combined_audio_path = os.path.join(AUDIO_DIR, os.path.basename(output_filename))
-        combined.export(combined_audio_path, format="mp3")
-        print(f"✅ Combined audio saved as: {combined_audio_path}")
+        combined.export(output_filename, format="mp3")
+        print(f"✅ Combined audio saved as: {output_filename}")
 
-        final_audio_with_music = add_background_music(combined_audio_path, background_music_genre, combined_audio_path)
-        return final_audio_with_music
+        return add_background_music(output_filename, background_music_genre, output_filename)
     except Exception as e:
         print(f"❌ Error during audio combination: {e}")
         return None
 
-def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host1_voice="en_us_001", host2_voice="Claribel Dervla", host_name="Rahul"):
+def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
     final_audio_path = os.path.join(AUDIO_DIR, f"{filename_prefix}_final.mp3")
     temp_audio_files = []
 
@@ -132,12 +121,12 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
             continue
 
         if speaker == host_name:
-            voice_index = "Host1" if cloned_voice_path else host1_voice
+            voice_index = "Host1" if cloned_voice_path else "en_us_001"
         else:
-            voice_index = host2_voice
+            voice_index = "Claribel Dervla"
 
         audio_filename = f"{filename_prefix}_part_{i}.mp3"
-        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path=cloned_voice_path, host_name=host_name)
+        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
 
         if speech_file:
             temp_audio_files.append(speech_file)
@@ -146,5 +135,4 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         print("❌ Error: No audio files generated.")
         return None
 
-    final_audio_path = combine_audio_files(temp_audio_files, final_audio_path, background_music_genre)
-    return final_audio_path
+    return combine_audio_files(temp_audio_files, final_audio_path, background_music_genre)
