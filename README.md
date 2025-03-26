@@ -25,7 +25,7 @@ The **AI Podcast Generator** is a web application that allows users to generate 
 - **Backend**: FastAPI (main.py, tts.py, extract_text.py, summarize.py, discussion.py, db.py)
 - **AI Models**:
   - **Text-to-Speech**: [TTS - xtts_v2](https://github.com/coqui-ai/TTS)
-  - **Summarization**: `facebook/bart-large-cnn`
+  - **Summarization**: `llama3.1:8b`
   - **Discussion Generation**: `llama3.1:8b`
 - **Audio Processing**: gTTS, PyDub
 
