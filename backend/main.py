@@ -43,11 +43,14 @@ async def upload_document(
 
         content = await file.read()
         text = extract_text(content, file.filename)
+        print(f"\n✅ Extracted Text: {text[:500]}...")  # shows first 500 characters
         if not text.strip():
             raise HTTPException(status_code=400, detail="No text extracted from the file.")
 
         summary = summarize_text(text)
-        discussion = generate_discussion(summary)
+        print(f"\n✅ Generated Summary: {summary}")
+        discussion = generate_discussion(summary, host_name)
+        print(f"\n✅ Generated Discussion:\n{discussion}")
 
         audio_file = generate_combined_audio(
             discussion,
@@ -56,6 +59,8 @@ async def upload_document(
             cloned_voice_path=cloned_voice_path,
             host_name=host_name
         )
+        print(f"\n✅ Generated Audio File: {audio_file}")
+
 
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
@@ -96,7 +101,9 @@ async def generate_podcast(
             print(f"✅ Voice sample saved at: {cloned_voice_path}")
 
         summary = summarize_text(topic)
-        discussion = generate_discussion(summary)
+        print(f"\n✅ Generated Summary: {summary}")
+        discussion = generate_discussion(summary, host_name)
+        print(f"\n✅ Generated Discussion:\n{discussion}")
 
         filename = f"podcast_{topic.replace(' ', '_')}.mp3"
         audio_file = generate_combined_audio(
@@ -106,6 +113,7 @@ async def generate_podcast(
             cloned_voice_path=cloned_voice_path,
             host_name=host_name
         )
+        print(f"\n✅ Generated Audio File: {audio_file}")
 
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
