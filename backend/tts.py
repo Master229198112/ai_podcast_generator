@@ -36,7 +36,7 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_nam
                 file_path=audio_path
             )
         else:
-            valid_voice = "en_us_001" if voice_index == "Host1" else voice_index
+            valid_voice = "Damien Black" if voice_index == "Host1" else voice_index
             tts.tts_to_file(
                 text=text,
                 speaker=valid_voice,
@@ -121,7 +121,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
             continue
 
         if speaker == host_name:
-            voice_index = "Host1" if cloned_voice_path else "en_us_001"
+            voice_index = "Host1" if cloned_voice_path else "Damien Black"
         else:
             voice_index = "Claribel Dervla"
 
