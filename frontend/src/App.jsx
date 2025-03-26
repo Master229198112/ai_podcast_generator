@@ -1,4 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_URL;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
 import React, { useState } from "react";
 import aircLogo from "./AIRC.jpg";
 import woxsenLogo from "./woxsen.png";
@@ -8,9 +12,14 @@ const App = () => {
     const [topic, setTopic] = useState("");
     const [inputType, setInputType] = useState("pdf");
     const [backgroundMusic, setBackgroundMusic] = useState("none");
+<<<<<<< HEAD
     const [voiceSample, setVoiceSample] = useState(null);
     const [useClonedVoice, setUseClonedVoice] = useState(false);
     const [hostName, setHostName] = useState("");  // New state for host name input
+=======
+    const [voiceSample, setVoiceSample] = useState(null);  // New state for voice cloning
+    const [useClonedVoice, setUseClonedVoice] = useState(false);  // Toggle for enabling voice cloning
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState(null);
@@ -38,10 +47,13 @@ const App = () => {
         setVoiceSample(event.target.files[0]);
     };
 
+<<<<<<< HEAD
     const handleHostNameChange = (event) => {
         setHostName(event.target.value);
     };
 
+=======
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
     const toggleVoiceCloning = () => {
         setUseClonedVoice(!useClonedVoice);
     };
@@ -65,6 +77,7 @@ const App = () => {
 
         formData.append("background_music", backgroundMusic);
 
+<<<<<<< HEAD
         if (useClonedVoice && voiceSample && hostName.trim()) {
             formData.append("voice_sample", voiceSample);
             formData.append("host_name", hostName);
@@ -72,6 +85,10 @@ const App = () => {
             setErrorMessage("Please provide both a voice sample and host name.");
             setLoading(false);
             return;
+=======
+        if (useClonedVoice && voiceSample) {
+            formData.append("voice_sample", voiceSample);
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
         }
 
         try {
@@ -85,6 +102,10 @@ const App = () => {
 
             if (response.ok) {
                 setAudioUrl(`${API_BASE}${data.audio}`);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
                 setProgress(100);
             } else {
                 throw new Error(data.error || "Failed to process request.");
@@ -136,6 +157,7 @@ const App = () => {
                 {/* Voice Cloning Option */}
                 <div className="music-selection">
                     <label>
+<<<<<<< HEAD
                         <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning for Host 1
                     </label>
                     {useClonedVoice && (
@@ -143,6 +165,12 @@ const App = () => {
                             <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
                             <input type="text" placeholder="Enter Host 1's Name..." value={hostName} onChange={handleHostNameChange} className="input-field" />
                         </>
+=======
+                        <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning
+                    </label>
+                    {useClonedVoice && (
+                        <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
+>>>>>>> 22cb9022214f24b50f3d6e26b79a2e09a3b17cfe
                     )}
                 </div>
 
