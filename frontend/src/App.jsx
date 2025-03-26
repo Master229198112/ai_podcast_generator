@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_URL;
+
 import React, { useState } from "react";
 import aircLogo from "./AIRC.jpg";
 import woxsenLogo from "./woxsen.png";
@@ -64,7 +66,7 @@ const App = () => {
         }
 
         try {
-            const endpoint = inputType === "pdf" ? "http://localhost:8000/upload" : "http://localhost:8000/generate";
+            const endpoint = inputType === "pdf" ? `${API_BASE}/upload` : `${API_BASE}/generate`;
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData,
@@ -73,7 +75,8 @@ const App = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setAudioUrl(`http://localhost:8000${data.audio}`);
+                setAudioUrl(`${API_BASE}${data.audio}`);
+
                 setProgress(100);
             } else {
                 throw new Error(data.error || "Failed to process request.");
