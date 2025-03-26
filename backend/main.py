@@ -14,7 +14,7 @@ app = FastAPI()
 # ✅ Add CORS support
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (change as needed)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,9 +27,15 @@ app.mount("/audio", StaticFiles(directory=STATIC_DIR), name="audio")
 
 # ✅ Upload & Process PDF File
 @app.post("/upload")
-async def upload_document(file: UploadFile = File(...), background_music: str = Form("none"), voice_sample: UploadFile = File(None)):
+async def upload_document(
+    file: UploadFile = File(...),
+    background_music: str = Form("none"),
+    voice_sample: UploadFile = File(None),
+    host1_voice: str = Form("en_us_001"),
+    host2_voice: str = Form("Claribel Dervla"),
+    host_name: str = Form("Rahul")
+):
     try:
-        # Save uploaded voice sample if provided
         cloned_voice_path = None
         if voice_sample:
             cloned_voice_path = os.path.join(STATIC_DIR, voice_sample.filename)
@@ -37,28 +43,31 @@ async def upload_document(file: UploadFile = File(...), background_music: str = 
                 f.write(await voice_sample.read())
             print(f"\n✅ Voice sample saved at: {cloned_voice_path}")
 
-        # Read file content
         content = await file.read()
         text = extract_text(content, file.filename)
-        print(f"\n✅ Extracted Text: {text[:500]}...")  # Debug print (first 500 chars)
+        print(f"\n✅ Extracted Text: {text[:500]}...")
 
-        # Check if text extraction was successful
         if not text.strip():
             raise HTTPException(status_code=400, detail="No text extracted from the file.")
 
         summary = summarize_text(text)
-        print(f"\n✅ Generated Summary: {summary}")  # Debug print
+        print(f"\n✅ Generated Summary: {summary}")
 
         discussion = generate_discussion(summary)
-        print(f"\n✅ Generated Discussion: {discussion}")  # Debug print
+        print(f"\n✅ Generated Discussion: {discussion}")
 
-        # Generate audio with selected background music and cloned voice if provided
-        audio_file = generate_combined_audio(discussion, file.filename, background_music, cloned_voice_path)
+        audio_file = generate_combined_audio(
+            discussion,
+            file.filename,
+            background_music,
+            cloned_voice_path,
+            host1_voice,
+            host2_voice,
+            host_name
+        )
 
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
-
-        print(f"\n✅ Generated Audio File: {audio_file}")  # Debug print
 
         podcast_id = save_podcast(file.filename, summary, audio_file)
 
@@ -68,24 +77,28 @@ async def upload_document(file: UploadFile = File(...), background_music: str = 
             "audio": f"/audio/{os.path.basename(audio_file)}"
         }
 
-        print(f"\n✅ Response Data: {response_data}")  # Debug print
         return JSONResponse(content=response_data, status_code=200)
 
     except HTTPException as e:
-        print(f"\n❌ HTTP Error: {str(e)}")  # Debug print
         return JSONResponse(content={"error": str(e.detail)}, status_code=e.status_code)
 
     except Exception as e:
-        print(f"\n❌ Unexpected Error: {str(e)}")  # Debug print
+        print(f"\n❌ Unexpected Error: {str(e)}")
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)
 
 # ✅ Generate Podcast from Topic Input
 @app.post("/generate")
-async def generate_podcast(topic: str = Form(...), background_music: str = Form("none"), voice_sample: UploadFile = File(None)):
+async def generate_podcast(
+    topic: str = Form(...),
+    background_music: str = Form("none"),
+    voice_sample: UploadFile = File(None),
+    host1_voice: str = Form("en_us_001"),
+    host2_voice: str = Form("Claribel Dervla"),
+    host_name: str = Form("Rahul")
+):
     try:
-        print(f"\n✅ Received Topic: {topic}")  # Debug print
+        print(f"\n✅ Received Topic: {topic}")
 
-        # Save uploaded voice sample if provided
         cloned_voice_path = None
         if voice_sample:
             cloned_voice_path = os.path.join(STATIC_DIR, voice_sample.filename)
@@ -94,19 +107,24 @@ async def generate_podcast(topic: str = Form(...), background_music: str = Form(
             print(f"\n✅ Voice sample saved at: {cloned_voice_path}")
 
         summary = summarize_text(topic)
-        print(f"\n✅ Generated Summary: {summary}")  # Debug print
+        print(f"\n✅ Generated Summary: {summary}")
 
         discussion = generate_discussion(summary)
-        print(f"\n✅ Generated Discussion: {discussion}")  # Debug print
+        print(f"\n✅ Generated Discussion: {discussion}")
 
-        # Generate audio with selected background music and cloned voice if provided
         filename = f"podcast_{topic.replace(' ', '_')}.mp3"
-        audio_file = generate_combined_audio(discussion, filename, background_music, cloned_voice_path)
+        audio_file = generate_combined_audio(
+            discussion,
+            filename,
+            background_music,
+            cloned_voice_path,
+            host1_voice,
+            host2_voice,
+            host_name
+        )
 
         if not os.path.exists(audio_file):
             raise HTTPException(status_code=500, detail="Failed to generate audio.")
-
-        print(f"\n✅ Generated Audio File: {audio_file}")  # Debug print
 
         podcast_id = save_podcast(topic, summary, audio_file)
 
@@ -116,14 +134,11 @@ async def generate_podcast(topic: str = Form(...), background_music: str = Form(
             "audio": f"/audio/{os.path.basename(audio_file)}"
         }
 
-        print(f"\n✅ Response Data: {response_data}")  # Debug print
         return JSONResponse(content=response_data, status_code=200)
 
     except HTTPException as e:
-        print(f"\n❌ HTTP Error: {str(e)}")  # Debug print
         return JSONResponse(content={"error": str(e.detail)}, status_code=e.status_code)
 
     except Exception as e:
-        print(f"\n❌ Unexpected Error: {str(e)}")  # Debug print
+        print(f"\n❌ Unexpected Error: {str(e)}")
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)
-

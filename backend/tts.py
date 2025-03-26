@@ -8,26 +8,18 @@ import torch
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Ensure 'audio/' directory exists for storing generated audio
 AUDIO_DIR = "audio"
-BACKGROUND_MUSIC_DIR = "background_music"  # Directory for background music tracks
+BACKGROUND_MUSIC_DIR = "background_music"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
 tts.to(device)
 
 def clean_text(text, host_name="Rahul"):
-    """
-    Remove * symbols and host names (Rahul or provided host name).
-    """
     text = re.sub(rf"{host_name}:|Kusum:", "", text, flags=re.IGNORECASE)
     return text.strip()
 
 def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_name="Rahul"):
-    """
-    Convert text to speech using TTS and save as an audio file.
-    Use cloned voice if provided for Host 1, default voice for Host 2.
-    """
     text = clean_text(text, host_name)
 
     if not text.strip():
@@ -47,9 +39,10 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_nam
                 file_path=audio_path
             )
         else:
+            valid_voice = "en_us_001" if voice_index == "Host1" else voice_index
             tts.tts_to_file(
                 text=text,
-                speaker=voice_index,
+                speaker=valid_voice,
                 language="en",
                 file_path=audio_path
             )
@@ -69,9 +62,6 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_nam
         return None
 
 def add_background_music(speech_audio, background_music_genre, output_filename):
-    """
-    Overlay selected background music onto the generated podcast audio.
-    """
     try:
         speech = AudioSegment.from_file(speech_audio)
 
@@ -79,7 +69,7 @@ def add_background_music(speech_audio, background_music_genre, output_filename):
             bg_music_path = os.path.join(BACKGROUND_MUSIC_DIR, f"{background_music_genre}.mp3")
             if os.path.exists(bg_music_path):
                 background = AudioSegment.from_file(bg_music_path)
-                background = background - 20  # Reduce background music volume
+                background = background - 20
 
                 if len(background) < len(speech):
                     repeat_count = (len(speech) // len(background)) + 1
@@ -100,10 +90,7 @@ def add_background_music(speech_audio, background_music_genre, output_filename):
         print(f"❌ Error adding background music: {e}")
         return speech_audio
 
-def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.mp3", background_music_genre="none"): 
-    """
-    Combine multiple audio files into one final audio file with optional background music.
-    """
+def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.mp3", background_music_genre="none"):
     if not temp_audio_files:
         print("❌ No audio files to combine.")
         return None
@@ -116,35 +103,24 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
             sound = AudioSegment.from_file(audio_file)
             combined += sound
 
-        combined_audio_path = os.path.join(AUDIO_DIR, os.path.basename(output_filename))  
-
+        combined_audio_path = os.path.join(AUDIO_DIR, os.path.basename(output_filename))
         combined.export(combined_audio_path, format="mp3")
         print(f"✅ Combined audio saved as: {combined_audio_path}")
 
-        # Add background music if selected
         final_audio_with_music = add_background_music(combined_audio_path, background_music_genre, combined_audio_path)
-
         return final_audio_with_music
     except Exception as e:
         print(f"❌ Error during audio combination: {e}")
         return None
 
-def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
-    """
-    Generate individual speech files for each dialogue turn and combine them into one file.
-    Apply cloned voice only to Host 1 (custom host name).
-    """
+def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host1_voice="en_us_001", host2_voice="Claribel Dervla", host_name="Rahul"):
     final_audio_path = os.path.join(AUDIO_DIR, f"{filename_prefix}_final.mp3")
     temp_audio_files = []
 
-    # Ensure default fallback to "Rahul" if no custom host name provided
     if not host_name.strip():
         host_name = "Rahul"
 
-    # Globally replace "Rahul" with the custom host name in the dialogue
     conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)
-
-    # Adjust the regex to detect dialogues correctly
     dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n({host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
 
     if not dialogue_lines:
@@ -155,10 +131,12 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         if not line.strip():
             continue
 
-        voice_index = "Host1" if speaker == host_name else "Claribel Dervla"
-        audio_filename = f"{filename_prefix}_part_{i}.mp3"
+        if speaker == host_name:
+            voice_index = "Host1" if cloned_voice_path else host1_voice
+        else:
+            voice_index = host2_voice
 
-        # Use cloned voice only for Host 1
+        audio_filename = f"{filename_prefix}_part_{i}.mp3"
         speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path=cloned_voice_path, host_name=host_name)
 
         if speech_file:
@@ -169,5 +147,4 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         return None
 
     final_audio_path = combine_audio_files(temp_audio_files, final_audio_path, background_music_genre)
-
     return final_audio_path
