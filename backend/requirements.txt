@@ -27,7 +27,7 @@ soundfile
 pdfminer.six
 pdfplumber
 
-# === Extras (used in your repo) ===
+# === Extra text parsing & generation ===
 nltk
 beautifulsoup4
 regex
@@ -35,3 +35,6 @@ typing_extensions
 python-docx
 gTTS
 pyttsx3
+
+# === Database ===
+pymongo
