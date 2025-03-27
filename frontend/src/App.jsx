@@ -47,7 +47,7 @@ const App = () => {
         setErrorMessage(null);
         setAudioUrl(null);
         setProgress(10);
-
+    
         const formData = new FormData();
         if (inputType === "pdf" && selectedFile) {
             formData.append("file", selectedFile);
@@ -58,26 +58,35 @@ const App = () => {
             setLoading(false);
             return;
         }
-
+    
         formData.append("background_music", backgroundMusic);
         formData.append("host_name", useClonedVoice ? customHostName : "Rahul");
-
+    
         if (useClonedVoice && voiceSample) {
             formData.append("voice_sample", voiceSample);
         }
-
+    
+        let simulatedProgress = 1;
+        const interval = setInterval(() => {
+            simulatedProgress += Math.random() * 0.5; // Increase 5–8% per tick
+            if (simulatedProgress < 90) {
+                setProgress(simulatedProgress);
+            }
+        }, 500);
+    
         try {
             const endpoint = inputType === "pdf" ? `${API_BASE}/upload` : `${API_BASE}/generate`;
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData,
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
-                setAudioUrl(`${API_BASE}${data.audio}`);
+                clearInterval(interval);
                 setProgress(100);
+                setAudioUrl(`${API_BASE}${data.audio}`);
             } else {
                 throw new Error(data.error || "Failed to process request.");
             }
@@ -85,15 +94,21 @@ const App = () => {
             console.error("Error:", error);
             setErrorMessage(error.message);
         } finally {
+            clearInterval(interval);
             setLoading(false);
         }
-    };
+    };    
 
     return (
+        <>
         <div className="app-container">
             <header className="header">
+            <a href="https://airc.example.com" target="_blank" rel="noopener noreferrer">
                 <img src={aircLogo} alt="AIRC Logo" className="logo-left" />
+            </a>
+            <a href="https://woxsen.edu.in" target="_blank" rel="noopener noreferrer">
                 <img src={woxsenLogo} alt="Woxsen Logo" className="logo-right" />
+            </a>
             </header>
 
             <div className="tile">
@@ -163,13 +178,16 @@ const App = () => {
                 )}
             </div>
         </div>  
+    
+            <footer className="footer">
+            Developed by <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
+                Vishal Kumar Sharma
+            </a>
+            </footer>
+        </>
     );
 };
 
-<footer className="footer">
-    Developed by <a href="https://www.linkedin.com/in/vishalkumarsharma-ai" target="_blank" rel="noopener noreferrer">
-        Vishal Kumar Sharma
-    </a>
-</footer>
+
 
 export default App;
