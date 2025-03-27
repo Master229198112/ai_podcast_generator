@@ -86,7 +86,14 @@ const App = () => {
             if (response.ok) {
                 clearInterval(interval);
                 setProgress(100);
-                setAudioUrl(`${API_BASE}${data.audio}`);
+                const audioResponse = await fetch(`${API_BASE}${data.audio}`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                const audioBlob = await audioResponse.blob();
+                const audioBlobUrl = URL.createObjectURL(audioBlob);
+                setAudioUrl(audioBlobUrl);                
             } else {
                 throw new Error(data.error || "Failed to process request.");
             }
