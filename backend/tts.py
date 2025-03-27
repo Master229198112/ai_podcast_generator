@@ -109,14 +109,20 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
     if not host_name.strip():
         host_name = "Rahul"
 
-    conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)
-    dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n({host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
+    # conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)
+    # Normalize speaker names to remove formatting like "**Rahul:**"
+    conversation_text = re.sub(r"\*\*(\w+):\*\*", r"\1:", conversation_text)  # Remove markdown bold
+    conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)  # Replace default host name
+
+    # dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n({host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
+    dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n(?:{host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
+
 
     if not dialogue_lines:
         print("❌ Error: No dialogues detected in the conversation.")
         return None
 
-    for i, (speaker, line, _) in enumerate(dialogue_lines):
+    for i, (speaker, line) in enumerate(dialogue_lines):
         if not line.strip():
             continue
 

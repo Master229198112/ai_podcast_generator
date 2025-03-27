@@ -130,7 +130,7 @@ const App = () => {
                     </label>
                     {useClonedVoice && (
                         <>
-                            <input type="text" placeholder="Enter Host Name (e.g. John)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
+                            <input type="text" placeholder="Enter Host Name (e.g. Vishal)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
                             <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
                         </>
                     )}
@@ -162,8 +162,14 @@ const App = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div>  
     );
 };
+
+<footer className="footer">
+    Developed by <a href="https://www.linkedin.com/in/vishalkumarsharma-ai" target="_blank" rel="noopener noreferrer">
+        Vishal Kumar Sharma
+    </a>
+</footer>
 
 export default App;
