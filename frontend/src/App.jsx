@@ -15,6 +15,8 @@ const App = () => {
     const [progress, setProgress] = useState(0);
     const [audioUrl, setAudioUrl] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [showInfo, setShowInfo] = useState(false);
+
 
     const handleFileChange = (event) => {
         setSelectedFile(event.target.files[0]);
@@ -119,7 +121,16 @@ const App = () => {
             </header>
 
             <div className="tile">
+                
                 <h1 className="title">AI Podcast Generator 🎙️</h1>
+                
+                <button
+                    className="info-button"
+                    onClick={() => setShowInfo(true)}
+                    title="How to use"
+                    >
+                    <label>Info:</label>ℹ️
+                </button>
 
                 <div className="radio-group">
                     <label>
@@ -194,6 +205,21 @@ const App = () => {
                 Vishal Kumar Sharma
             </a>
             </footer>
+            {showInfo && (
+                <div className="modal-overlay" onClick={() => setShowInfo(false)}>
+                    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                    <button className="close-button" onClick={() => setShowInfo(false)}>✖</button>
+                    <h2><u>How to Use AI Podcast Generator</u></h2>
+                    <ul><ul>
+                        <li>📄 Upload a PDF file (only `.pdf`) or enter a topic manually</li>
+                        <li>🎵 Select optional background music</li>
+                        <li>🧬 Enable Voice Cloning (optional) by uploading your voice sample `.mp3` and your name</li>
+                        <li>🎙 Click <strong>Generate Podcast</strong> and wait while your AI podcast is created</li>
+                        <li>🎧 Listen to your final podcast below on popup music player</li>
+                    </ul></ul>
+                    </div>
+                </div>
+                )}
         </>
     );
 };
