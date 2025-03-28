@@ -131,7 +131,9 @@ const App = () => {
                 </div>
 
                 {inputType === "pdf" ? (
-                    <input type="file" onChange={handleFileChange} className="input-field" />
+                    <>
+                      <label>📄 Upload PDF File (only .pdf):</label>
+                        <input type="file" accept=".pdf" onChange={handleFileChange} className="input-field" /> </>
                 ) : (
                     <input type="text" placeholder="Enter a topic..." value={topic} onChange={handleTopicChange} className="input-field" />
                 )}
@@ -153,7 +155,8 @@ const App = () => {
                     {useClonedVoice && (
                         <>
                             <input type="text" placeholder="Enter Host Name (e.g. Vishal)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
-                            <input type="file" accept="audio/*" onChange={handleVoiceSampleChange} className="input-field" />
+                            <label>🎙️ Upload Voice Sample (only .mp3):</label>
+                            <input type="file" accept=".mp3" onChange={handleVoiceSampleChange} className="input-field" />
                         </>
                     )}
                 </div>
