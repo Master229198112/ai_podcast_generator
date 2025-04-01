@@ -103,7 +103,8 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         return None
 
 def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
-    final_audio_path = os.path.join(AUDIO_DIR, f"{filename_prefix}_final.mp3")
+    safe_prefix = re.sub(r'[\\/*?:"<>|]', '', filename_prefix)
+    final_audio_path = os.path.join(AUDIO_DIR, f"{safe_prefix}_final.mp3")
     temp_audio_files = []
 
     if not host_name.strip():
