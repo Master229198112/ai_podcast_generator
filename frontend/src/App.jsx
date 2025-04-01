@@ -84,21 +84,25 @@ const App = () => {
             });
     
             const data = await response.json();
-    
+
             if (response.ok) {
                 clearInterval(interval);
                 setProgress(100);
+                
+                // Add this block to correctly fetch audio through ngrok
                 const audioResponse = await fetch(`${API_BASE}${data.audio}`, {
                     headers: {
                         'ngrok-skip-browser-warning': 'true'
                     }
                 });
+
                 const audioBlob = await audioResponse.blob();
                 const audioBlobUrl = URL.createObjectURL(audioBlob);
-                setAudioUrl(audioBlobUrl);                
+                setAudioUrl(audioBlobUrl);
             } else {
                 throw new Error(data.error || "Failed to process request.");
             }
+
         } catch (error) {
             console.error("Error:", error);
             setErrorMessage(error.message);
