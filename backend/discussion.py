@@ -10,10 +10,10 @@ def generate_discussion(summary, host_name="Rahul"):
     if len(summary.split()) < 20:
         prompt = f"""
         You are two AI hosts discussing the topic '{summary}' in a podcast-style conversation.
-        Host A is named {host_name}, and Host B is named Kusum.
+        Host A is named {host_name}, and Host B is named Emy.
 
         {host_name}: Welcome to our AI podcast! Today, we will discuss an interesting topic: {summary}.
-        Kusum: Yes, it's a fascinating topic! Let's dive in.
+        Emy: Yes, it's a fascinating topic! Let's dive in.
 
         Continue the discussion in an engaging manner, providing different perspectives, examples, and interesting facts.
         """
@@ -23,10 +23,10 @@ def generate_discussion(summary, host_name="Rahul"):
 
         {summary}
 
-        Host A is named {host_name}, and Host B is named Kusum.
+        Host A is named {host_name}, and Host B is named Emy.
 
         {host_name}: Welcome to our AI podcast! Today, we will discuss this fascinating document.
-        Kusum: Absolutely! Here's a brief overview:
+        Emy: Absolutely! Here's a brief overview:
 
         Continue the discussion in an engaging manner, breaking down the concepts and explaining them.
         """

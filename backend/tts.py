@@ -15,7 +15,7 @@ tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
 tts.to(device)
 
 def clean_text(text, host_name="Rahul"):
-    return re.sub(rf"{host_name}:|Kusum:", "", text, flags=re.IGNORECASE).strip()
+    return re.sub(rf"{host_name}:|Emy:", "", text, flags=re.IGNORECASE).strip()
 
 def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_name="Rahul"):
     text = clean_text(text, host_name)
@@ -114,8 +114,8 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
     conversation_text = re.sub(r"\*\*(\w+):\*\*", r"\1:", conversation_text)  # Remove markdown bold
     conversation_text = re.sub(r'Rahul:', f'{host_name}:', conversation_text)  # Replace default host name
 
-    # dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n({host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
-    dialogue_lines = re.findall(rf'({host_name}|Kusum):\s*(.*?)(?=\n(?:{host_name}|Kusum):|\Z)', conversation_text, re.DOTALL)
+    # dialogue_lines = re.findall(rf'({host_name}|Emy):\s*(.*?)(?=\n({host_name}|Emy):|\Z)', conversation_text, re.DOTALL)
+    dialogue_lines = re.findall(rf'({host_name}|Emy):\s*(.*?)(?=\n(?:{host_name}|Emy):|\Z)', conversation_text, re.DOTALL)
 
 
     if not dialogue_lines:
