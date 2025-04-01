@@ -116,7 +116,7 @@ const App = () => {
         <>
         <div className="app-container">
             <header className="header">
-            <a href="https://airc.example.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
                 <img src={aircLogo} alt="AIRC Logo" className="logo-left" />
             </a>
             <a href="https://woxsen.edu.in" target="_blank" rel="noopener noreferrer">
@@ -205,6 +205,10 @@ const App = () => {
             <footer className="footer">
             Developed by <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
                 Vishal Kumar Sharma
+            </a>
+            &nbsp; - &nbsp;
+            <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
+                AI Research Centre
             </a>
             </footer>
             {showInfo && (
