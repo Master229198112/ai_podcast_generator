@@ -132,7 +132,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         else:
             voice_index = "Claribel Dervla"
 
-        audio_filename = f"{filename_prefix}_part_{i}.mp3"
+        audio_filename = f"{safe_prefix}_part_{i}.mp3"
         speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
 
         if speech_file:

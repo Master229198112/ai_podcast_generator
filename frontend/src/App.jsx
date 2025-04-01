@@ -203,7 +203,7 @@ const App = () => {
         </div>  
     
             <footer className="footer">
-            Developed by <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
+            Developed by: <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
                 Vishal Kumar Sharma
             </a>
             &nbsp; - &nbsp;
