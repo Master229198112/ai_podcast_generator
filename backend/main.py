@@ -8,6 +8,7 @@ from discussion import generate_discussion
 from tts import generate_combined_audio
 from db import save_podcast
 import os
+from video_generator.video_generator import generate_video
 
 app = FastAPI()
 
@@ -21,9 +22,12 @@ app.add_middleware(
 )
 
 # Serve audio files
+
 STATIC_DIR = "audio"
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/audio", StaticFiles(directory=STATIC_DIR), name="audio")
+# Serve podcast video files
+app.mount("/podcast", StaticFiles(directory="Podcast"), name="podcast")
 
 
 @app.post("/upload")
@@ -67,14 +71,17 @@ async def upload_document(
 
         podcast_id = save_podcast(file.filename, summary, audio_file)
 
+        project_name = os.path.basename(audio_file).replace("_final.mp3", "")
         return JSONResponse(
             content={
                 "message": "Podcast Created from PDF!",
                 "podcast_id": podcast_id,
-                "audio": f"/audio/{os.path.basename(audio_file)}"
+                "project_name": project_name,
+                "audio": f"/podcast/{project_name}/{project_name}_final.mp3"
             },
             status_code=200
         )
+
 
     except HTTPException as e:
         return JSONResponse(content={"error": str(e.detail)}, status_code=e.status_code)
@@ -120,11 +127,13 @@ async def generate_podcast(
 
         podcast_id = save_podcast(topic, summary, audio_file)
 
+        project_name = os.path.basename(audio_file).replace("_final.mp3", "")
         return JSONResponse(
             content={
                 "message": "Podcast Created from Topic!",
                 "podcast_id": podcast_id,
-                "audio": f"/audio/{os.path.basename(audio_file)}"
+                "project_name": project_name,
+                "audio": f"/podcast/{project_name}/{project_name}_final.mp3"
             },
             status_code=200
         )
@@ -134,3 +143,18 @@ async def generate_podcast(
     except Exception as e:
         print(f"❌ Unexpected Error: {str(e)}")
         return JSONResponse(content={"error": "An internal error occurred."}, status_code=500)
+
+@app.post("/generate_video")
+async def generate_video_api(project_name: str = Form(...)):
+    try:
+        output_path = generate_video(project_name)
+        return JSONResponse(
+            content={
+                "message": "Video generated successfully.",
+                "video": f"/podcast/{project_name}/{os.path.basename(output_path)}"
+            },
+            status_code=200
+        )
+    except Exception as e:
+        print(f"❌ Error during video generation: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)

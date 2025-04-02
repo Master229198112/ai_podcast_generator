@@ -16,6 +16,10 @@ const App = () => {
     const [audioUrl, setAudioUrl] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const [showInfo, setShowInfo] = useState(false);
+    const [projectName, setProjectName] = useState("");
+    const [videoUrl, setVideoUrl] = useState(null);
+    const [videoGenerating, setVideoGenerating] = useState(false);
+
 
 
     const handleFileChange = (event) => {
@@ -44,10 +48,12 @@ const App = () => {
         setUseClonedVoice(!useClonedVoice);
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setLoading(true);
         setErrorMessage(null);
         setAudioUrl(null);
+        setVideoUrl(null);
         setProgress(10);
     
         const formData = new FormData();
@@ -88,7 +94,9 @@ const App = () => {
             if (response.ok) {
                 clearInterval(interval);
                 setProgress(100);
-                
+            
+            setProjectName(data.audio.split("/")[2]?.replace("_final.mp3", "")); // extracts filename prefix
+
                 // Add this block to correctly fetch audio through ngrok
                 const audioResponse = await fetch(`${API_BASE}${data.audio}`, {
                     headers: {
@@ -110,124 +118,173 @@ const App = () => {
             clearInterval(interval);
             setLoading(false);
         }
+    };
+    
+    const handleGenerateVideo = async () => {
+        setVideoGenerating(true);
+        setVideoUrl(null);
+    
+        const formData = new FormData();
+        formData.append("project_name", projectName);
+    
+        try {
+            const response = await fetch(`${API_BASE}/generate_video`, {
+                method: "POST",
+                body: formData,
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok && data.video) {
+                // Load via ngrok-safe fetch
+                const videoResponse = await fetch(`${API_BASE}${data.video}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const blob = await videoResponse.blob();
+                setVideoUrl(URL.createObjectURL(blob));
+            } else {
+                throw new Error(data.error || "Video generation failed.");
+            }
+        } catch (err) {
+            alert("❌ " + err.message);
+        } finally {
+            setVideoGenerating(false);
+        }
     };    
 
     return (
-        <>
-        <div className="app-container">
+        <div className="main-wrapper">
+          <div className="app-container content">
             <header className="header">
-            <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
+              <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
                 <img src={aircLogo} alt="AIRC Logo" className="logo-left" />
-            </a>
-            <a href="https://woxsen.edu.in" target="_blank" rel="noopener noreferrer">
+              </a>
+              <a href="https://woxsen.edu.in" target="_blank" rel="noopener noreferrer">
                 <img src={woxsenLogo} alt="Woxsen Logo" className="logo-right" />
-            </a>
+              </a>
             </header>
-
+      
             <div className="tile">
-                
-                <h1 className="title">AI Podcast Generator 🎙️</h1>
-                
-                <button
-                    className="info-button"
-                    onClick={() => setShowInfo(true)}
-                    title="How to use"
-                    >
-                    <label>Info:</label>ℹ️
-                </button>
-
-                <div className="radio-group">
-                    <label>
-                        <input type="radio" value="pdf" checked={inputType === "pdf"} onChange={() => setInputType("pdf")} /> Upload PDF
-                    </label>
-                    <label>
-                        <input type="radio" value="topic" checked={inputType === "topic"} onChange={() => setInputType("topic")} /> Enter Topic
-                    </label>
+              <h1 className="title">AI Podcast Generator 🎙️</h1>
+      
+              <button className="info-button" onClick={() => setShowInfo(true)} title="How to use">
+                <label>Info:</label> ℹ️
+              </button>
+      
+              <div className="radio-group">
+                <label>
+                  <input type="radio" value="pdf" checked={inputType === "pdf"} onChange={() => setInputType("pdf")} /> Upload PDF
+                </label>
+                <label>
+                  <input type="radio" value="topic" checked={inputType === "topic"} onChange={() => setInputType("topic")} /> Enter Topic
+                </label>
+              </div>
+      
+              {inputType === "pdf" ? (
+                <input type="file" accept=".pdf" onChange={handleFileChange} className="input-field" />
+              ) : (
+                <input type="text" placeholder="Enter a topic..." value={topic} onChange={handleTopicChange} className="input-field" />
+              )}
+      
+              <div className="music-selection">
+                <label>Select Background Music:</label>
+                <select onChange={handleMusicChange} className="input-field">
+                  <option value="none">None</option>
+                  <option value="jazz">Jazz</option>
+                  <option value="ambient">Ambient</option>
+                  <option value="lofi">Lo-Fi</option>
+                </select>
+              </div>
+      
+              <div className="music-selection">
+                <label>
+                  <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning
+                </label>
+                {useClonedVoice && (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Enter Host Name (e.g. Vishal)"
+                      onChange={(e) => setCustomHostName(e.target.value)}
+                      className="input-field"
+                    />
+                    <input type="file" accept=".mp3" onChange={handleVoiceSampleChange} className="input-field" />
+                  </>
+                )}
+              </div>
+      
+              <button onClick={handleSubmit} className="btn" disabled={loading}>
+                {loading ? "Processing..." : "Generate Podcast 🎧"}
+              </button>
+      
+              {loading && (
+                <div className="progress-bar">
+                  <div className="progress" style={{ width: `${progress}%` }}></div>
                 </div>
-
-                {inputType === "pdf" ? (
-                    <>
-                        <input type="file" accept=".pdf" onChange={handleFileChange} className="input-field" /> </>
-                ) : (
-                    <input type="text" placeholder="Enter a topic..." value={topic} onChange={handleTopicChange} className="input-field" />
-                )}
-
-                <div className="music-selection">
-                    <label>Select Background Music:</label>
-                    <select onChange={handleMusicChange} className="input-field">
-                        <option value="none">None</option>
-                        <option value="jazz">Jazz</option>
-                        <option value="ambient">Ambient</option>
-                        <option value="lofi">Lo-Fi</option>
-                    </select>
+              )}
+      
+              {audioUrl && (
+                <>
+                  <div className="audio-container">
+                    <h2 className="audio-title">Generated Audio 🎧:</h2>
+                    <audio controls className="audio-player">
+                      <source src={audioUrl} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+      
+                  <button className="btn" onClick={handleGenerateVideo} disabled={videoGenerating}>
+                    {videoGenerating ? "Generating Video..." : "Generate Video 🎬"}
+                  </button>
+                </>
+              )}
+      
+              {videoUrl && (
+                <div className="audio-container">
+                  <h2 className="audio-title">Generated Video 🎬:</h2>
+                  <video controls width="100%" style={{ marginTop: "10px", borderRadius: "8px" }}>
+                    <source src={videoUrl} type="video/mp4" />
+                    Your browser does not support the video element.
+                  </video>
                 </div>
-
-                <div className="music-selection">
-                    <label>
-                        <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning
-                    </label>
-                    {useClonedVoice && (
-                        <>
-                            <input type="text" placeholder="Enter Host Name (e.g. Vishal)" onChange={(e) => setCustomHostName(e.target.value)} className="input-field" />
-                            <input type="file" accept=".mp3"  onChange={handleVoiceSampleChange} className="input-field" />
-                        </>
-                    )}
-                </div>
-
-                <button onClick={handleSubmit} className="btn" disabled={loading}>
-                    {loading ? "Processing..." : "Generate Podcast"}
-                </button>
-
-                {loading && (
-                    <div className="progress-bar">
-                        <div className="progress" style={{ width: `${progress}%` }}></div>
-                    </div>
-                )}
-
-                {audioUrl && (
-                    <div className="audio-container">
-                        <h2 className="audio-title">Generated Audio:</h2>
-                        <audio controls className="audio-player">
-                            <source src={audioUrl} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
-                )}
-
-                {errorMessage && (
-                    <div className="error-message">
-                        Error: {errorMessage}
-                    </div>
-                )}
+              )}
+      
+              {errorMessage && <div className="error-message">Error: {errorMessage}</div>}
             </div>
-        </div>  
-    
-            <footer className="footer">
-            Developed by: <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
-                Vishal Kumar Sharma
+          </div>
+      
+          <footer className="footer">
+            Developed by:{" "}
+            <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
+              Vishal Kumar Sharma
             </a>
             &nbsp; - &nbsp;
             <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
-                AI Research Centre
+              AI Research Centre
             </a>
-            </footer>
-            {showInfo && (
-                <div className="modal-overlay" onClick={() => setShowInfo(false)}>
-                    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-                    <button className="close-button" onClick={() => setShowInfo(false)}>✖</button>
-                    <h2><u>How to Use AI Podcast Generator</u></h2>
-                    <ul><ul>
-                        <li>📄 Upload a PDF file (only `.pdf`) or enter a topic manually</li>
-                        <li>🎵 Select optional background music</li>
-                        <li>🧬 Enable Voice Cloning (optional) by uploading your voice sample `.mp3` and your name</li>
-                        <li>🎙 Click <strong>Generate Podcast</strong> and wait while your AI podcast is created</li>
-                        <li>🎧 Listen to your final podcast below on popup music player</li>
-                    </ul></ul>
-                    </div>
-                </div>
-                )}
-        </>
-    );
+          </footer>
+      
+          {showInfo && (
+            <div className="modal-overlay" onClick={() => setShowInfo(false)}>
+              <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                <button className="close-button" onClick={() => setShowInfo(false)}>
+                  ✖
+                </button>
+                <h2>
+                  <u>How to Use AI Podcast Generator</u>
+                </h2>
+                <ul>
+                  <li>📄 Upload a PDF file (only `.pdf`) or enter a topic manually</li>
+                  <li>🎵 Select optional background music</li>
+                  <li>🧬 Enable Voice Cloning (optional) by uploading your voice sample `.mp3` and your name</li>
+                  <li>🎙 Click <strong>Generate Podcast</strong> and wait while your AI podcast is created</li>
+                  <li>🎧 Listen to your final podcast below on popup music player</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      );      
 };
 
 

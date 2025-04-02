@@ -9,6 +9,8 @@ import json
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 AUDIO_DIR = "audio"
+PODCAST_DIR = os.path.join("Podcast")  # new base folder
+os.makedirs(PODCAST_DIR, exist_ok=True)
 BACKGROUND_MUSIC_DIR = "background_music"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 SEGMENT_METADATA_DIR = AUDIO_DIR  # or separate folder if you like
@@ -25,7 +27,7 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_nam
         print(f"⚠️ Skipping empty text for {filename}")
         return None
 
-    audio_path = os.path.join(AUDIO_DIR, filename)
+    audio_path = filename
     print(f"🔄 Generating speech for: {filename}")
 
     try:
@@ -106,7 +108,9 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
 
 def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
     safe_prefix = re.sub(r'[\\/*?:"<>|]', '', filename_prefix)
-    final_audio_path = os.path.join(AUDIO_DIR, f"{safe_prefix}_final.mp3")
+    podcast_folder = os.path.join(PODCAST_DIR, safe_prefix)
+    os.makedirs(podcast_folder, exist_ok=True)
+    final_audio_path = os.path.join(podcast_folder, f"{safe_prefix}_final.mp3")
     temp_audio_files = []
 
     if not host_name.strip():
@@ -134,7 +138,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         else:
             voice_index = "Claribel Dervla"
 
-        audio_filename = f"{safe_prefix}_part_{i}.mp3"
+        audio_filename = os.path.join(podcast_folder, f"{safe_prefix}_part_{i}.mp3")
         speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
 
         if speech_file:
@@ -156,7 +160,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         else:
             voice_index = "Claribel Dervla"
 
-        audio_filename = f"{safe_prefix}_part_{i}.mp3"
+        audio_filename = os.path.join(podcast_folder, f"{safe_prefix}_part_{i}.mp3")
         speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
 
         if speech_file:
@@ -171,7 +175,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
             current_time += duration_ms
 
     # Save JSON with timestamps
-    metadata_filename = os.path.join(AUDIO_DIR, f"{safe_prefix}_segments.json")
+    metadata_filename = os.path.join(podcast_folder, f"{safe_prefix}_segments.json")
     with open(metadata_filename, "w") as f:
         json.dump(segment_metadata, f, indent=2)
 

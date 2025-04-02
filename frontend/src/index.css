@@ -232,3 +232,72 @@
   font-size: 20px;
   cursor: pointer;
 }
+
+/* Layout Fix for Heading and Footer */
+body, html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+.main-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  padding-top: 100px; /* ensures heading stays visible */
+  padding-bottom: 60px; /* ensures footer doesn't overlap content */
+}
+
+/* Adjust top margin for app title */
+.title {
+  margin-top: 30px;
+  font-size: 2em;
+}
+
+/* Responsive media queries for small screens */
+@media (max-width: 768px) {
+  .tile {
+    padding: 20px;
+    width: 90%;
+  }
+
+  .logo-left,
+  .logo-right {
+    height: 60px;
+  }
+
+  .header {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 1.5em;
+    margin-top: 20px;
+  }
+
+  .audio-player {
+    width: 100%;
+  }
+}
+
+/* Updated footer to stay below content, not fixed */
+.footer {
+  position: relative;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 0;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 14px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+  margin-top: 40px;
+}
