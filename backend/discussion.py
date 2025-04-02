@@ -16,7 +16,7 @@ def generate_discussion(summary, host_name="Rahul"):
 
     # Shared intro
     intro = f"""
-{host_name}: Welcome to the AI Podcast Generator, me {host_name}, with my co-host, Emy.
+{host_name}: Welcome to the AI Research Centre Podcast, me {host_name}, with my co-host, Emy.
 Emy: That's right! Today we're diving into {intro_topic}.
 {host_name}: Let's get started!
 """

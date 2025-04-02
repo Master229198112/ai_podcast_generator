@@ -4,12 +4,14 @@ import time
 from pydub import AudioSegment
 from TTS.api import TTS
 import torch
+import json
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 AUDIO_DIR = "audio"
 BACKGROUND_MUSIC_DIR = "background_music"
 os.makedirs(AUDIO_DIR, exist_ok=True)
+SEGMENT_METADATA_DIR = AUDIO_DIR  # or separate folder if you like
 
 tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
 tts.to(device)
@@ -141,5 +143,36 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
     if not temp_audio_files:
         print("❌ Error: No audio files generated.")
         return None
+
+    segment_metadata = []
+    current_time = 0.0
+
+    for i, (speaker, line) in enumerate(dialogue_lines):
+        if not line.strip():
+            continue
+
+        if speaker == host_name:
+            voice_index = "Host1" if cloned_voice_path else "Damien Black"
+        else:
+            voice_index = "Claribel Dervla"
+
+        audio_filename = f"{safe_prefix}_part_{i}.mp3"
+        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
+
+        if speech_file:
+            temp_audio_files.append(speech_file)
+
+            duration_ms = AudioSegment.from_file(speech_file).duration_seconds
+            segment_metadata.append({
+                "speaker": speaker,
+                "start": round(current_time, 2),
+                "end": round(current_time + duration_ms, 2)
+            })
+            current_time += duration_ms
+
+    # Save JSON with timestamps
+    metadata_filename = os.path.join(AUDIO_DIR, f"{safe_prefix}_segments.json")
+    with open(metadata_filename, "w") as f:
+        json.dump(segment_metadata, f, indent=2)
 
     return combine_audio_files(temp_audio_files, final_audio_path, background_music_genre)
