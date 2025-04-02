@@ -129,6 +129,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         print("❌ Error: No dialogues detected in the conversation.")
         return None
 
+    # Step 1: Generate audio files
     for i, (speaker, line) in enumerate(dialogue_lines):
         if not line.strip():
             continue
@@ -148,6 +149,7 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         print("❌ Error: No audio files generated.")
         return None
 
+    # Step 2: Generate metadata from existing audio files
     segment_metadata = []
     current_time = 0.0
 
@@ -155,28 +157,22 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         if not line.strip():
             continue
 
-        if speaker == host_name:
-            voice_index = "Host1" if cloned_voice_path else "Damien Black"
-        else:
-            voice_index = "Claribel Dervla"
-
         audio_filename = os.path.join(podcast_folder, f"{safe_prefix}_part_{i}.mp3")
-        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
-
-        if speech_file:
-            temp_audio_files.append(speech_file)
-
-            duration_ms = AudioSegment.from_file(speech_file).duration_seconds
+        if os.path.exists(audio_filename):
+            duration_sec = AudioSegment.from_file(audio_filename).duration_seconds
             segment_metadata.append({
                 "speaker": speaker,
                 "start": round(current_time, 2),
-                "end": round(current_time + duration_ms, 2)
+                "end": round(current_time + duration_sec, 2)
             })
-            current_time += duration_ms
+            current_time += duration_sec
+        else:
+            print(f"⚠️ Warning: Missing audio file for metadata: {audio_filename}")
 
-    # Save JSON with timestamps
+    # Step 3: Save JSON metadata
     metadata_filename = os.path.join(podcast_folder, f"{safe_prefix}_segments.json")
     with open(metadata_filename, "w") as f:
         json.dump(segment_metadata, f, indent=2)
+
 
     return combine_audio_files(temp_audio_files, final_audio_path, background_music_genre)
