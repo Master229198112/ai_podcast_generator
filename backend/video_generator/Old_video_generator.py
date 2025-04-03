@@ -20,31 +20,24 @@ def generate_video(project_name: str, base_dir="Podcast"):
         raise FileNotFoundError("No *_final.mp3 found.")
     audio_clip = AudioFileClip(os.path.join(folder_path, audio_path))
 
-    # Load video assets
+    # Load speaker loop clips
     base = os.path.dirname(__file__)
     rahul_clip = VideoFileClip(os.path.join(base, "Rahul.mp4"))
     emy_clip = VideoFileClip(os.path.join(base, "Emy.mp4"))
-    start_clip = VideoFileClip(os.path.join(base, "Start.mp4")).without_audio()
-    exit_clip = VideoFileClip(os.path.join(base, "End.mp4")).without_audio()
 
     def loop_video(clip, duration):
         looped = concatenate_videoclips([clip] * (int(duration // clip.duration) + 1))
         return looped.subclip(0, duration)
 
-    # Create video clips based on speaker segments
-    main_video_clips = []
+    final_clips = []
     for seg in segments:
         speaker = seg["speaker"]
         duration = seg["end"] - seg["start"]
         base_clip = rahul_clip if speaker == "Rahul" else emy_clip
-        main_video_clips.append(loop_video(base_clip, duration))
+        final_clips.append(loop_video(base_clip, duration))
 
-    # Combine the speaking part and apply audio
-    main_video = concatenate_videoclips(main_video_clips).set_audio(audio_clip)
-
-    # Combine all: start + main + exit
-    full_video = concatenate_videoclips([start_clip, main_video, exit_clip])
+    video = concatenate_videoclips(final_clips).set_audio(audio_clip)
     output_path = os.path.join(folder_path, f"{project_name}_final_video.mp4")
-    full_video.write_videofile(output_path, codec="libx264", audio_codec="aac")
+    video.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
     return output_path
