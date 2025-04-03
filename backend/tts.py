@@ -23,15 +23,17 @@ def clean_text(text, host_name="Rahul"):
 
 def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_name="Rahul"):
     text = clean_text(text, host_name)
+
     if not text.strip():
         print(f"⚠️ Skipping empty text for {filename}")
         return None
 
-    audio_path = filename
+    audio_path = os.path.join(filename)
     print(f"🔄 Generating speech for: {filename}")
 
     try:
-        if voice_index == "Host1" and cloned_voice_path:
+        # Cloned voices
+        if voice_index in ["Host1", "Host2"] and cloned_voice_path:
             print(f"🎙️ Using cloned voice from: {cloned_voice_path}")
             tts.tts_to_file(
                 text=text,
@@ -40,10 +42,10 @@ def text_to_speech(text, filename, voice_index, cloned_voice_path=None, host_nam
                 file_path=audio_path
             )
         else:
-            valid_voice = "Damien Black" if voice_index == "Host1" else voice_index
+            # Pretrained voice
             tts.tts_to_file(
                 text=text,
-                speaker=valid_voice,
+                speaker=voice_index,
                 language="en",
                 file_path=audio_path
             )
@@ -106,7 +108,7 @@ def combine_audio_files(temp_audio_files, output_filename="audio/combined_audio.
         print(f"❌ Error during audio combination: {e}")
         return None
 
-def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, host_name="Rahul"):
+def generate_combined_audio(conversation_text, filename_prefix, background_music_genre="none", cloned_voice_path=None, cloned_voice_path_2=None, host_name="Rahul", host_name_2="Emy"):
     safe_prefix = re.sub(r'[\\/*?:"<>|]', '', filename_prefix)
     podcast_folder = os.path.join(PODCAST_DIR, safe_prefix)
     os.makedirs(podcast_folder, exist_ok=True)
@@ -134,13 +136,24 @@ def generate_combined_audio(conversation_text, filename_prefix, background_music
         if not line.strip():
             continue
 
+        # if speaker == host_name:
+        #     voice_index = "Host1" if cloned_voice_path else "Damien Black"
+        # else:
+        #     voice_index = "Claribel Dervla"
+
         if speaker == host_name:
             voice_index = "Host1" if cloned_voice_path else "Damien Black"
+            speaker_audio = cloned_voice_path
+        elif speaker == host_name_2:
+            voice_index = "Host2" if cloned_voice_path_2 else "Claribel Dervla"
+            speaker_audio = cloned_voice_path_2
         else:
-            voice_index = "Claribel Dervla"
+            continue  # skip unknown speaker
 
         audio_filename = os.path.join(podcast_folder, f"{safe_prefix}_part_{i}.mp3")
-        speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
+        # speech_file = text_to_speech(line, audio_filename, voice_index, cloned_voice_path, host_name)
+        print(f"🧠 Speaker: {speaker} → Voice Index: {voice_index}, Using: {speaker_audio}")
+        speech_file = text_to_speech(line, audio_filename, voice_index, speaker_audio, speaker)
 
         if speech_file:
             temp_audio_files.append(speech_file)

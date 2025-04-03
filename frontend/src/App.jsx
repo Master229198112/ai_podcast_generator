@@ -19,6 +19,10 @@ const App = () => {
     const [projectName, setProjectName] = useState("");
     const [videoUrl, setVideoUrl] = useState(null);
     const [videoGenerating, setVideoGenerating] = useState(false);
+    const [useClonedVoice2, setUseClonedVoice2] = useState(false);
+    const [voice_sample_2, setvoice_sample_2] = useState(null);
+    const [customHostName2, setCustomHostName2] = useState("Emy");
+
 
 
 
@@ -69,9 +73,13 @@ const App = () => {
     
         formData.append("background_music", backgroundMusic);
         formData.append("host_name", useClonedVoice ? customHostName : "Rahul");
-    
+        formData.append("host_name_2", useClonedVoice2 ? customHostName2 : "Emy");
+
         if (useClonedVoice && voiceSample) {
-            formData.append("voice_sample", voiceSample);
+        formData.append("voice_sample", voiceSample);
+        }
+        if (useClonedVoice2 && voice_sample_2) {
+        formData.append("voice_sample_2", voice_sample_2);
         }
     
         let simulatedProgress = 1;
@@ -198,13 +206,13 @@ const App = () => {
       
               <div className="music-selection">
                 <label>
-                  <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Voice Cloning
+                  <input type="checkbox" checked={useClonedVoice} onChange={toggleVoiceCloning} /> Enable Host 1 Voice Cloning
                 </label>
                 {useClonedVoice && (
                   <>
                     <input
                       type="text"
-                      placeholder="Enter Host Name (e.g. Vishal)"
+                      placeholder="Enter Host 1 Name (e.g. Vishal)"
                       onChange={(e) => setCustomHostName(e.target.value)}
                       className="input-field"
                     />
@@ -212,7 +220,25 @@ const App = () => {
                   </>
                 )}
               </div>
-      
+
+              <div className="music-selection">
+                <label>
+                    <input type="checkbox" checked={useClonedVoice2} onChange={() => setUseClonedVoice2(!useClonedVoice2)} />
+                    Enable Host 2 Voice Cloning
+                </label>
+                {useClonedVoice2 && (
+                    <>
+                    <input
+                        type="text"
+                        placeholder="Enter Host 2 Name (e.g. Emy)"
+                        onChange={(e) => setCustomHostName2(e.target.value)}
+                        className="input-field"
+                    />
+                    <input type="file" accept=".mp3" onChange={(e) => setvoice_sample_2(e.target.files[0])} className="input-field" />
+                    </>
+                )}
+                </div>
+
               <button onClick={handleSubmit} className="btn" disabled={loading}>
                 {loading ? "Processing..." : "Generate Podcast 🎧"}
               </button>
