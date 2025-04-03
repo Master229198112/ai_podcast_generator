@@ -284,6 +284,10 @@ const App = () => {
             <a href="https://www.linkedin.com/in/mastervishal/" target="_blank" rel="noopener noreferrer">
               Vishal Kumar Sharma
             </a>
+            , {" "}
+            <a href="https://www.linkedin.com/in/madhav-janumula-841b25253/" target="_blank" rel="noopener noreferrer">
+                Madhav Janumula
+            </a>
             &nbsp; - &nbsp;
             <a href="https://airc.woxsen.edu.in/" target="_blank" rel="noopener noreferrer">
               AI Research Centre
