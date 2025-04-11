@@ -14,9 +14,9 @@ The **AI Podcast Generator** is a web application that allows users to generate 
 - **Genre Selection**: Choose from various background music genres like **Jazz**, **Ambient**, and **Lo-Fi**.
 - **Automatic Mixing**: The system overlays the selected music onto the podcast while balancing volume levels.
 
-### 🎤 Voice Cloning (In Progress)
+### 🎤 Voice Cloning
 - **Custom Voice Generation**: Upload a voice sample to clone your voice and generate personalized podcasts.
-- **Default AI Voices**: If no voice sample is provided, the podcast will use predefined AI voices (**Rahul** and **Kusum**).
+- **Default AI Voices**: If no voice sample is provided, the podcast will use predefined AI voices (**Rahul** and **Emy**).
 
 ---
 
@@ -168,6 +168,7 @@ This project is licensed under the **AIRC**.
 For any questions or contributions, feel free to reach out:
 - **Email**: vishalkumar.sharma37@gmail.com
 - **GitHub**: [Master229198112](https://github.com/Master229198112)
+- **Demo**: [AI Podcast Generator](https://ai-podcast-generator-zeta.vercel.app/)
 
 Happy Podcasting! 🎤🌟
 
